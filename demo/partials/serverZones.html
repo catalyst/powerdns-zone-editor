@@ -1,0 +1,12 @@
+<h3>{{ server.id }} zones</h3>
+
+<p><a ui-sref="servers">Back to servers</a></p>
+
+<table>
+    <tr>
+        <th>Zone</th><th>Serial</th>
+    </tr>
+    <tr ng-repeat="zone in zones">
+        <td><a ui-sref="serverZone({server_id:server.id, id: zone.id})">{{ zone.id }}</a></td><td>{{ zone.serial }}</td>
+    </tr>
+</table>

@@ -1,0 +1,10 @@
+<h3>All Servers</h3>
+
+<table>
+    <tr>
+        <th>Hostname</th><th>Daemon</th>
+    </tr>
+    <tr ng-repeat="server in servers">
+        <td><a ui-sref="serverZones({id:server.id})">{{ server.id }}</a></td><td>{{ server.daemon_type }} {{ server.version }}</td>
+    </tr>
+</table>

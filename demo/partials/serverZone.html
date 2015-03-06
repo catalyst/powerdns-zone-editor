@@ -1,0 +1,12 @@
+<h3>{{ zone.name }} records on {{ zone.parentResource.id }}</h3>
+
+<p><a ui-sref="serverZones({id: zone.parentResource.id})">Back to {{ zone.parentResource.id }}</a></p>
+
+<table>
+    <tr>
+        <th>Name</th><th>Type</th><th>TTL</th><th>Content</th>
+    </tr>
+  <tr ng-repeat="record in zone.records">
+    <td>{{ record.name }}</td><td>{{ record.type }}</td><td>{{ record.ttl }}</td><td>{{ record.content }}</td>
+  </tr>
+</table>
