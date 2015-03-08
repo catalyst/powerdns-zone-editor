@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# this proxy is for testing only, do not use in production!
+
 import SocketServer
 import SimpleHTTPServer
 import urllib2
