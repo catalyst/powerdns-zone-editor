@@ -36,6 +36,9 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework_proxy',
+    'bootstrap',
     'client',
 )
 
@@ -87,9 +90,17 @@ STATIC_URL = '/static/'
 
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
-# PowerDNS server to talk to
+# REST framework
 
-POWERDNS_SERVER = {
-    'key': 'password',
-    'url': 'http://127.0.0.1:8081/'
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAdminUser',),
+    'PAGE_SIZE': 10
 }
+
+REST_PROXY = {
+    'HOST': 'http://127.0.0.1:8081',
+}
+
+# PowerDNS settings
+
+POWERDNS_SERVER = 'localhost'

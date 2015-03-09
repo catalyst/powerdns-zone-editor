@@ -6,7 +6,7 @@ import SocketServer
 import SimpleHTTPServer
 import urllib2
 
-PORT = 8000
+PORT = 8010
 
 class Proxy(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def do_GET(self):

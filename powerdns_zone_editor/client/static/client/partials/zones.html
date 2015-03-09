@@ -1,0 +1,10 @@
+<h1 class="page-header">Zones</h1>
+
+<table class="table table-stripped">
+    <tr>
+        <th>Zone</th><th>Serial</th>
+    </tr>
+    <tr ng-repeat="zone in zones">
+        <td><a ui-sref="client.zone({id: zone.id})">{{ zone.name }}</a></td><td>{{ zone.serial }}</td>
+    </tr>
+</table>

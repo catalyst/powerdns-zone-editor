@@ -1,0 +1,56 @@
+{% extends "client/base.html" %}
+{% load staticfiles %}
+
+{% block jsapp %}
+        <script>
+            angular.module('dnsApp', ['ui.router', 'restangular', 'dnsApp.controllers']);
+
+            angular.module('dnsApp.controllers', []).
+            controller('ZonesList', ['$scope', 'user', 'zones', function($scope, user, zones) {
+                $scope.user = user;
+                $scope.zones = zones;
+            }]).
+            controller('Zone', ['$scope', 'user', 'zone', function($scope, user, zone) {
+                $scope.user = user;
+                $scope.zone = zone;
+            }]);
+
+            angular.module('dnsApp').config(function($stateProvider, $urlRouterProvider, RestangularProvider) {
+
+                $stateProvider.
+                state('client', {
+                    url: '',
+                    template: "<div ui-view></div>",
+                    abstract: true,
+                    resolve: {
+                        user: function (Restangular) {
+                            return Restangular.one('user').get();
+                        }
+                    }
+                }).
+                state('client.zones', {
+                    url: '/zones',
+                    templateUrl: '{% static "client/partials/zones.html" %}',
+                    controller: 'ZonesList',
+                    resolve: {
+                        zones: function (Restangular) {
+                            return Restangular.all('zones/').getList();
+                        }
+                    }
+                }).
+                state('client.zone', {
+                    url: '/zones/:id',
+                    templateUrl: '{% static "client/partials/zone.html" %}',
+                    controller: 'Zone',
+                    resolve: {
+                        zone: function (Restangular, $stateParams) {
+                            return Restangular.one('zones', $stateParams.id).get();
+                        }
+                    }
+                });
+
+                RestangularProvider.setBaseUrl('/api');
+
+            });
+        </script>
+{% endblock %}

@@ -1,8 +1,6 @@
-<h3>{{ zone.name }} records on {{ zone.parentResource.id }}</h3>
+<h1 class="page-header">{{ zone.name }}</h1>
 
-<p><a ui-sref="serverZones({id: zone.parentResource.id})">Back to {{ zone.parentResource.id }}</a></p>
-
-<table>
+<table class="table table-stripped">
     <tr>
         <th>Name</th><th>Type</th><th>TTL</th><th>Content</th>
     </tr>
