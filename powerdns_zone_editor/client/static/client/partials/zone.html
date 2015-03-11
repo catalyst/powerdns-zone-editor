@@ -1,10 +1,66 @@
-<h1 class="page-header">{{ zone.name }}</h1>
+<h1 class="page-header">{{ zone.name }} <small>{{ zone.account }}</small></h1>
 
-<table class="table table-stripped">
+<table class="table zone-info">
     <tr>
-        <th>Name</th><th>Type</th><th>TTL</th><th>Content</th>
+        <th>Kind</th><td>{{ zone.kind }}</td><th>Records</th><td>{{ zone.records.length }}</td>
     </tr>
-  <tr ng-repeat="record in zone.records">
-    <td>{{ record.name }}</td><td>{{ record.type }}</td><td>{{ record.ttl }}</td><td>{{ record.content }}</td>
-  </tr>
+    <tr>
+        <th>Serial</th><td>{{ zone.serial }}</td>
+    </tr>
+</table>
+
+<table class="table records" st-table="displayedRecords" st-safe-src="zone.records">
+    <thead>
+        <tr class="table-tools">
+            <th colspan="3">
+                <input st-search placeholder="Filter..." class="input-sm form-control" type="search"/>
+            </th>
+            <th colspan="2">
+                <span class="pull-right">
+                    <span ng-show="anyUnsavedRecords()"><span class="text-success">{{ countUnsavedRecords('inserted') }} new</span>, <span class="text-info">{{ countUnsavedRecords('modified') }} modified</span>, <span class="text-danger">{{ countUnsavedRecords('deleted') }} deleted</span></span>
+                    <button type="submit" class="btn btn-danger" ng-click="addRecord()">Add record</button>
+                    <button type="submit" class="btn btn-primary" ng-disabled="!anyUnsavedRecords()">Save changes</button>
+                </span>
+            </th>
+        </tr>
+        <tr>
+            <th st-sort="name">Name</th><th st-skip-natural="true" st-sort-default="true" st-sort="sortByType">Type</th><th st-sort="ttl">TTL</th><th st-sort="content">Content</th><th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="record in displayedRecords" ng-class="{ 'bg-info': record.original, 'bg-danger': record.deleted, 'bg-success': record.inserted }">
+            <td ng-click="rowform.$show()" class="col-md-2 record-name">
+                <span ng-show="!rowform.$visible &amp;&amp; record.original.name != record.name &amp;&amp; record.original" class="original">{{ record.original.name }}<br></span>
+                <span editable-text="record.name" e-name="name" e-form="rowform">{{ record.name }}</span>
+            </td>
+            <td ng-click="rowform.$show()" class="col-md-1 record-type">
+                <span ng-show="!rowform.$visible &amp;&amp; record.original.type != record.type &amp;&amp; record.original" class="original">{{ record.original.type }}<br></span>
+                <span ng-if="record.type != 'SOA'" editable-select="record.type" e-name="type" e-form="rowform" e-ng-options="name for (name, name) in recordTypes">{{ record.type }}</span>
+                <span ng-if="record.type == 'SOA'">SOA</span>
+            </td>
+            <td ng-click="rowform.$show()" class="col-md-1 record-ttl">
+                <span ng-show="!rowform.$visible &amp;&amp; record.original.ttl != record.ttl &amp;&amp; record.original" class="original">{{ record.original.ttl }}<br></span>
+                <span editable-text="record.ttl" e-name="ttl" e-form="rowform">{{ record.ttl }}</span>
+            </td>
+            <td ng-click="rowform.$show()" class="record-content">
+                <span ng-show="!rowform.$visible &amp;&amp; record.original.content != record.content &amp;&amp; record.original" class="original">{{ record.original.content }}<br></span>
+                <span editable-text="record.content" e-name="content" e-form="rowform">{{ record.content }}</span>
+            </td>
+            <td class="record-actions">
+                <form editable-form name="rowform" ng-show="rowform.$visible" class="form-buttons form-inline" onbeforesave="beforeUpdateRecord(record, $data)" onaftersave="afterUpdateRecord(record)" shown="inserted == record" oncancel="resetRecord(record)">
+                    <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-default btn-link"><span class="glyphicon glyphicon-ok" aria-hidden="true" title="Modify"></span></button>
+                    <button type="submit" ng-disabled="rowform.$waiting" ng-click="rowform.$cancel()"  class="btn btn-link"><span class="glyphicon glyphicon-remove" aria-hidden="true"title="Cancel modification"></span></button>
+                </form>
+
+                <button ng-show="!rowform.$visible" type="button" class="btn btn-link pull-right" ng-click="deleteRecord(record)" aria-label="Delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" ng-hide="record.deleted" title="Delete"></span><span class="glyphicon glyphicon-remove" aria-hidden="true" ng-show="record.deleted" title="Cancel deletion"></span></button>
+            </td>
+        </tr>
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="5" class="text-center">
+                <div st-pagination="" st-items-by-page="50" st-displayed-pages="20"></div>
+            </td>
+        </tr>
+    </tfoot>
 </table>

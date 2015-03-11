@@ -85,21 +85,58 @@ body {
 }
 
 
-/*
- * Placeholder dashboard ideas
- */
+/* Record tables */
 
-.placeholders {
-  margin-bottom: 30px;
-  text-align: center;
+table.zone-info tr td, table.zone-info tr th {
+    border-top: none;
 }
-.placeholders h4 {
-  margin-bottom: 0;
+
+table.records tr td {
+    vertical-align: middle;
+    border-top: none;
+    cursor: pointer;
 }
-.placeholder {
-  margin-bottom: 20px;
+
+table.records tr th {
+    border-top: none;
+    border-bottom: 1px solid #ddd;
 }
-.placeholder img {
-  display: inline-block;
-  border-radius: 50%;
+
+table.records tr.table-tools th {
+    border-top: none;
+    border-bottom: none;
 }
+
+table.records tr td input {
+    width: 100%;
+}
+
+table.records tr td.record-content span.editable-wrap {
+    width: 100%;
+}
+
+table.records tr td.record-content input {
+    width: 100%;
+}
+
+table.records tr td.record-actions {
+    width: 64px;
+    text-align: right;
+}
+
+table.records tr td.record-actions button {
+    padding: 0 0 0 3px;
+}
+
+/*table.records tbody.rrset tr:not(:first-child) td:first-child {
+    visibility: hidden;
+}*/
+
+table.records tr td span.original {
+    text-decoration: line-through;
+}
+
+table.zone-info {
+    width: auto;
+}
+

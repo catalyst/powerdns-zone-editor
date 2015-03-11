@@ -3,16 +3,143 @@
 
 {% block jsapp %}
         <script>
-            angular.module('dnsApp', ['ui.router', 'restangular', 'dnsApp.controllers']);
+            angular.module('dnsApp', ['ui.router', 'xeditable', 'smart-table',  'restangular', 'dnsApp.controllers']);
 
             angular.module('dnsApp.controllers', []).
             controller('ZonesList', ['$scope', 'user', 'zones', function($scope, user, zones) {
                 $scope.user = user;
                 $scope.zones = zones;
             }]).
-            controller('Zone', ['$scope', 'user', 'zone', function($scope, user, zone) {
+            controller('Zone', ['$scope','$filter', 'user', 'zone', function($scope, $filter, user, zone) {
                 $scope.user = user;
                 $scope.zone = zone;
+                $scope.changed_records = 0;
+
+                $scope.recordTypes = {
+                    'SOA': {'allowCreate': false, 'required': true, 'sortWeight': -100},
+                    'A': {},
+                    'AAAA': {},
+                    'NS': {'sortWeight': -50},
+                    'CNAME': {},
+                    'DNAME': {},
+                    'MR': {},
+                    'PTR': {},
+                    'HINFO': {},
+                    'MX': {},
+                    'TXT': {},
+                    'RP': {},
+                    'AFSDB': {},
+                    'SIG': {},
+                    'KEY': {},
+                    'LOC': {},
+                    'SRV': {},
+                    'CERT': {},
+                    'NAPTR': {},
+                    'DS': {'sortWeight': -50},
+                    'SSHFP': {},
+                    'RRSIG': {},
+                    'NSEC': {},
+                    'DNSKEY': {},
+                    'NSEC3': {},
+                    'NSEC3PARAM': {},
+                    'TLSA': {},
+                    'SPF': {},
+                    'DLV': {},
+                };
+
+                $scope.sortByType = function(record) {
+                    if (record.hasOwnProperty('inserted')) {
+                        return 0;
+                    }
+                                        recordType = $scope.recordTypes[record.type]
+                    if ('sortWeight' in recordType) {
+                        return recordType.sortWeight;
+                    } else {
+                        return record.type;
+                    }
+                };
+
+                $scope.countUnsavedRecords = function(modification) {
+                    var property_filter = {};
+                    property_filter[modification] = true;
+                    return $filter('filter')($scope.zone.records, property_filter).length;
+                };
+
+                $scope.anyUnsavedRecords = function() {
+                    return ($scope.countUnsavedRecords('inserted') > 0) || ($scope.countUnsavedRecords('deleted') > 0) || ($scope.countUnsavedRecords('modified') > 0);
+                };
+
+                window.ngscope = $scope;
+
+                $scope.beforeUpdateRecord = function(record, changes) {
+                    if (changes.name == '') {
+                        return 'Record must have a name';
+                    }
+
+                    if (record.hasOwnProperty('inserted')) {
+                        return;
+                    }
+
+                    if (record.hasOwnProperty('deleted')) {
+                        delete record['deleted'];
+                    }
+
+                    if (!record.hasOwnProperty('original')) {
+                        record.original = angular.copy(record);
+                        record.modified = true;
+                    }
+                };
+
+                $scope.afterUpdateRecord = function(record) {
+                    if (record.hasOwnProperty('inserted')) {
+                        return;
+                    }
+
+                    var record_without_original = angular.copy(record);
+                    delete record_without_original['original'];
+                    delete record_without_original['modified'];
+
+                    if (angular.equals(record_without_original, record.original)) {
+                        delete record['original'];
+                        delete record['modified'];
+                    }
+                };
+
+                $scope.resetRecord = function(record) {
+                    if (record.hasOwnProperty('original')) {
+                        delete record['original'];
+                        delete record['modified'];
+                    }
+                    if (record.hasOwnProperty('inserted')) {
+                        $scope.deleteRecord(record);
+                    }
+                };
+
+                $scope.deleteRecord = function(record) {
+                    if (record.hasOwnProperty('inserted')) {
+                        $scope.zone.records.splice($scope.zone.records.indexOf(record), 1);
+                        return;
+                    }
+
+                    if (record.hasOwnProperty('deleted')) {
+                        delete record['deleted'];
+                    } else {
+                        $scope.resetRecord(record);
+                        record.deleted = true;
+                    }
+                };
+
+                $scope.addRecord = function() {
+                    $scope.inserted = {
+                      name: '',
+                      type: 'A',
+                      ttl: 3600,
+                      content: '',
+                      inserted: true
+                    };
+                    $scope.zone.records.push($scope.inserted);
+                };
+
             }]);
 
             angular.module('dnsApp').config(function($stateProvider, $urlRouterProvider, RestangularProvider) {
@@ -29,7 +156,7 @@
                     }
                 }).
                 state('client.zones', {
-                    url: '/zones',
+                    url: '',
                     templateUrl: '{% static "client/partials/zones.html" %}',
                     controller: 'ZonesList',
                     resolve: {
@@ -51,6 +178,9 @@
 
                 RestangularProvider.setBaseUrl('/api');
 
+            }).
+            run(function(editableOptions) {
+                editableOptions.theme = 'bs3';
             });
         </script>
 {% endblock %}

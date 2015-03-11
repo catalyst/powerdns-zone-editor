@@ -12,6 +12,7 @@
     <title>{% block title %}Zone Editor{% endblock %}</title>
 
     <link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
+    <link href="{% static "client/css/xeditable.css" %}" rel="stylesheet">
     <link href="{% static "client/css/client.css" %}" rel="stylesheet">
   </head>
 
@@ -42,7 +43,7 @@
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar">
           <ul class="nav nav-sidebar">
-            <li class="active"><a href="/#/zones">Zones <span class="sr-only">(current)</span></a></li>
+            <li class="active"><a href="/">Zones <span class="sr-only">(current)</span></a></li>
           </ul>
         </div>
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" ui-view>
@@ -56,6 +57,8 @@
     <script type="text/javascript" src="{% static "client/lib/angular-ui-router.js" %}"></script>
     <script type="text/javascript" src="{% static "client/lib/restangular.js" %}"></script>
     <script type="text/javascript" src="{% static "bootstrap/lib/ui-bootstrap.js" %}"></script>
+    <script type="text/javascript" src="{% static "client/lib/xeditable.js" %}"></script>
+    <script type="text/javascript" src="{% static "client/lib/smart-table.js" %}"></script>
     {% block jsapp %}{% endblock %}
   </body>
 </html>
