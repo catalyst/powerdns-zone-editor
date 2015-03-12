@@ -10,6 +10,8 @@ from django.utils.decorators import method_decorator
 
 from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework.request import Request, clone_request
+
 from rest_framework.views import APIView
 from rest_framework_proxy.views import ProxyView
 
@@ -39,25 +41,34 @@ class ZoneListProxyView(PowerDnsProxyView):
         return response
 
 class ZoneProxyView(PowerDnsProxyView):
-    allowed_methods = ['GET', 'PUT', 'DELETE', 'PATCH']
+    allowed_methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
     source = 'servers/%s/zones/%%(pk)s' % settings.POWERDNS_SERVER
 
-    def get(self, request, *args, **kwargs):
-        response = super(ZoneProxyView, self).get(request, *args, **kwargs)
+    def _user_belongs_to_account(self, user, account):
+        return False
+        return user.is_superuser or user.groups.filter(name=account).exists()
 
-        if not request.user.is_superuser and not request.user.groups.filter(name=response.data['account']).exists():
-            response.data = ['code', 'error']
-            response.status_code = 422
+    def proxy(self, request, *args, **kwargs):
+        if request.method == 'GET': # load zone
+            response = super(ZoneProxyView, self).proxy(request, *args, **kwargs)
+
+            if not self._user_belongs_to_account(request.user, response.data['account']):
+                response.data = ['code', 'error']
+                response.status_code = 422
+                return response
+
+            records = response.data['records']
+
+            key = itemgetter('name', 'type')
+            rrsets = groupby(sorted(records, key=key), key=key)
+
+            response.data['rrsets'] = [{'name': k[0], 'type': k[1], 'records': list(v)} for k, v in rrsets]
+
             return response
-
-        records = response.data['records']
-
-        key = itemgetter('name', 'type')
-        rrsets = groupby(sorted(records, key=key), key=key)
-
-        response.data['rrsets'] = [{'name': k[0], 'type': k[1], 'records': list(v)} for k, v in rrsets]
-
-        return response
+        elif request.method == 'PUT': # saving a changed zone
+            server_zone = self.get(clone_request(request, 'GET'))
+            if not self._user_belongs_to_account(request.user, server_zone.data['account']):
+                return Http404
 
 class UserView(APIView):
     def get(self, request):

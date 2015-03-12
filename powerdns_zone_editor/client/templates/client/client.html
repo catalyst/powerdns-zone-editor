@@ -47,11 +47,15 @@
                     'DLV': {},
                 };
 
+                $scope.saveZone = function() {
+                    $scope.zone.save();
+                };
+
                 $scope.sortByType = function(record) {
-                    if (record.hasOwnProperty('inserted')) {
-                        return 0;
+                    if (record.modification == 'created') {
+                        return -1;
                     }
-                                        recordType = $scope.recordTypes[record.type]
+                    recordType = $scope.recordTypes[record.type]
                     if ('sortWeight' in recordType) {
                         return recordType.sortWeight;
                     } else {
@@ -60,89 +64,103 @@
                 };
 
                 $scope.countUnsavedRecords = function(modification) {
-                    var property_filter = {};
-                    property_filter[modification] = true;
-                    return $filter('filter')($scope.zone.records, property_filter).length;
+                    return $filter('filter')($scope.zone.records, {'modification': modification}).length;
                 };
 
                 $scope.anyUnsavedRecords = function() {
-                    return ($scope.countUnsavedRecords('inserted') > 0) || ($scope.countUnsavedRecords('deleted') > 0) || ($scope.countUnsavedRecords('modified') > 0);
+                    return $scope.countUnsavedRecords('created') + $scope.countUnsavedRecords('updated') + $scope.countUnsavedRecords('deleted');
                 };
 
-                window.ngscope = $scope;
-
+                /* Validate input and store the 'pristine' version of the
+                   record if this is the first time it's been modified */
                 $scope.beforeUpdateRecord = function(record, changes) {
                     if (changes.name == '') {
                         return 'Record must have a name';
                     }
 
-                    if (record.hasOwnProperty('inserted')) {
+                    /* Newly created records do not have a 'pristine' version to
+                       store */
+                    if (record.modification == 'created') {
                         return;
                     }
 
-                    if (record.hasOwnProperty('deleted')) {
-                        delete record['deleted'];
-                    }
-
+                    /* Copy the un-modified state of the record in to a property
+                       of the record itself */
                     if (!record.hasOwnProperty('original')) {
                         record.original = angular.copy(record);
-                        record.modified = true;
+                        record.modification = 'updated';
                     }
                 };
 
+                /* If the user has returned the record back to its pristine state
+                   remove the attribute marking it as having been updated */
                 $scope.afterUpdateRecord = function(record) {
-                    if (record.hasOwnProperty('inserted')) {
+                    if (record.modification == 'created') {
                         return;
                     }
 
+                    /* Make a copy of the record with the extra attributes removed
+                       for comparison */
                     var record_without_original = angular.copy(record);
                     delete record_without_original['original'];
-                    delete record_without_original['modified'];
+                    delete record_without_original['modification'];
 
                     if (angular.equals(record_without_original, record.original)) {
                         delete record['original'];
-                        delete record['modified'];
+                        delete record['modification'];
                     }
                 };
 
-                $scope.resetRecord = function(record) {
-                    if (record.hasOwnProperty('original')) {
-                        delete record['original'];
-                        delete record['modified'];
-                    }
-                    if (record.hasOwnProperty('inserted')) {
-                        $scope.deleteRecord(record);
-                    }
-                };
-
+                /* Toggle marking the record for deletion (in its original form),
+                   or just remove it if the record only exists locally */
                 $scope.deleteRecord = function(record) {
-                    if (record.hasOwnProperty('inserted')) {
+                    // 'created' records only exist locally
+                    if (record.modification == 'created') {
                         $scope.zone.records.splice($scope.zone.records.indexOf(record), 1);
                         return;
                     }
 
-                    if (record.hasOwnProperty('deleted')) {
-                        delete record['deleted'];
+                    // if the record is already marked for deletion, un-mark it
+                    if (record.modification == 'deleted') {
+                        delete record['modification'];
                     } else {
                         $scope.resetRecord(record);
-                        record.deleted = true;
+                        record.modification = 'deleted';
+                    }
+                };
+
+                /* Return a record to its pristine state, or remove it if it
+                   only exists locally */
+                $scope.resetRecord = function(record) {
+                    if (record.modification == 'created') {
+                        $scope.deleteRecord(record);
+                    }
+
+                    if (record.hasOwnProperty('original')) {
+                        // XXX why is this madness necessary...
+                        record.name = record.original.name;
+                        record.type = record.original.type;
+                        record.ttl = record.original.ttl;
+                        record.content = record.original.content;
+                        delete record['original'];
+                        delete record['modification'];
                     }
                 };
 
                 $scope.addRecord = function() {
-                    $scope.inserted = {
+                    $scope.created = {
                       name: '',
                       type: 'A',
                       ttl: 3600,
                       content: '',
-                      inserted: true
+                      modification: 'created'
                     };
-                    $scope.zone.records.push($scope.inserted);
+                    $scope.zone.records.push(angular.copy($scope.created));
                 };
 
             }]);
 
-            angular.module('dnsApp').config(function($stateProvider, $urlRouterProvider, RestangularProvider) {
+            angular.module('dnsApp').config(function($stateProvider, $urlRouterProvider, $httpProvider,  RestangularProvider) {
 
                 $stateProvider.
                 state('client', {
@@ -175,7 +193,8 @@
                         }
                     }
                 });
-
+                $httpProvider.defaults.xsrfCookieName = 'csrftoken';
+                $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
                 RestangularProvider.setBaseUrl('/api');
 
             }).

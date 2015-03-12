@@ -17,9 +17,9 @@
             </th>
             <th colspan="2">
                 <span class="pull-right">
-                    <span ng-show="anyUnsavedRecords()"><span class="text-success">{{ countUnsavedRecords('inserted') }} new</span>, <span class="text-info">{{ countUnsavedRecords('modified') }} modified</span>, <span class="text-danger">{{ countUnsavedRecords('deleted') }} deleted</span></span>
-                    <button type="submit" class="btn btn-danger" ng-click="addRecord()">Add record</button>
-                    <button type="submit" class="btn btn-primary" ng-disabled="!anyUnsavedRecords()">Save changes</button>
+                    <span ng-show="anyUnsavedRecords()"><span class="text-success">{{ countUnsavedRecords('created') }} created</span>, <span class="text-info">{{ countUnsavedRecords('updated') }} updated</span>, <span class="text-danger">{{ countUnsavedRecords('deleted') }} deleted</span></span>
+                    <button type="submit" class="btn btn-success" ng-click="addRecord()">Add record</button>
+                    <button type="submit" class="btn btn-primary" ng-click="saveZone()" ng-disabled="!anyUnsavedRecords()">Save changes</button>
                 </span>
             </th>
         </tr>
@@ -28,7 +28,7 @@
         </tr>
     </thead>
     <tbody>
-        <tr ng-repeat="record in displayedRecords" ng-class="{ 'bg-info': record.original, 'bg-danger': record.deleted, 'bg-success': record.inserted }">
+        <tr ng-repeat="record in displayedRecords" ng-class="{ 'bg-info': record.modification == 'updated', 'bg-danger': record.modification == 'deleted', 'bg-success': record.modification == 'created' }">
             <td ng-click="rowform.$show()" class="col-md-2 record-name">
                 <span ng-show="!rowform.$visible &amp;&amp; record.original.name != record.name &amp;&amp; record.original" class="original">{{ record.original.name }}<br></span>
                 <span editable-text="record.name" e-name="name" e-form="rowform">{{ record.name }}</span>
@@ -47,12 +47,12 @@
                 <span editable-text="record.content" e-name="content" e-form="rowform">{{ record.content }}</span>
             </td>
             <td class="record-actions">
-                <form editable-form name="rowform" ng-show="rowform.$visible" class="form-buttons form-inline" onbeforesave="beforeUpdateRecord(record, $data)" onaftersave="afterUpdateRecord(record)" shown="inserted == record" oncancel="resetRecord(record)">
-                    <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-default btn-link"><span class="glyphicon glyphicon-ok" aria-hidden="true" title="Modify"></span></button>
-                    <button type="submit" ng-disabled="rowform.$waiting" ng-click="rowform.$cancel()"  class="btn btn-link"><span class="glyphicon glyphicon-remove" aria-hidden="true"title="Cancel modification"></span></button>
+                <form editable-form name="rowform" ng-show="rowform.$visible" class="form-buttons form-inline" onbeforesave="beforeUpdateRecord(record, $data)" onaftersave="afterUpdateRecord(record)" shown="record.modification == 'created'" oncancel="resetRecord(record)">
+                    <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-default btn-link" title="Update"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></button>
+                    <button type="button" ng-disabled="rowform.$waiting" ng-click="rowform.$cancel()"  class="btn btn-link" title="Cancel update"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
                 </form>
 
-                <button ng-show="!rowform.$visible" type="button" class="btn btn-link pull-right" ng-click="deleteRecord(record)" aria-label="Delete"><span class="glyphicon glyphicon-trash" aria-hidden="true" ng-hide="record.deleted" title="Delete"></span><span class="glyphicon glyphicon-remove" aria-hidden="true" ng-show="record.deleted" title="Cancel deletion"></span></button>
+                <button ng-show="!rowform.$visible &amp;&amp; record.type != 'SOA'" type="button" class="btn btn-link pull-right" ng-click="deleteRecord(record)" aria-label="Delete" title="Toggle deletion"><span class="glyphicon glyphicon-trash" aria-hidden="true" ng-hide="record.deleted"></span><span class="glyphicon glyphicon-remove" aria-hidden="true" ng-show="record.deleted"></span></button>
             </td>
         </tr>
     </tbody>

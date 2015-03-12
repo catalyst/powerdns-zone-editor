@@ -128,11 +128,11 @@ table.records tr td.record-actions button {
     padding: 0 0 0 3px;
 }
 
-/*table.records tbody.rrset tr:not(:first-child) td:first-child {
-    visibility: hidden;
-}*/
-
 table.records tr td span.original {
+    text-decoration: line-through;
+}
+
+table.records tr.bg-danger {
     text-decoration: line-through;
 }
 
