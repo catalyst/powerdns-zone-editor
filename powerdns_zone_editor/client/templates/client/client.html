@@ -1,6 +1,12 @@
 {% extends "client/base.html" %}
 {% load staticfiles %}
 
+{% block sidebar %}
+<ul class="nav nav-sidebar">
+    <li class="active"><a href="/">Zones <span class="sr-only">(current)</span></a></li>
+</ul>
+{% endblock %}
+
 {% block jsapp %}
         <script>
             angular.module('dnsApp', ['ui.router', 'xeditable', 'smart-table',  'restangular', 'dnsApp.controllers']);
@@ -13,7 +19,8 @@
             controller('Zone', ['$scope','$filter', 'user', 'zone', function($scope, $filter, user, zone) {
                 $scope.user = user;
                 $scope.zone = zone;
-                $scope.changed_records = 0;
+                $scope.powerdnsError = '';
+                $scope.powerdnsResult = '';
 
                 $scope.recordTypes = {
                     'SOA': {'allowCreate': false, 'required': true, 'sortWeight': -100},
@@ -48,11 +55,21 @@
                 };
 
                 $scope.saveZone = function() {
-                    $scope.zone.save();
+                    $scope.zone.save().then(function (saved_zone) {
+                        response = angular.fromJson(saved_zone);
+                        if ('error' in response) {
+                            $scope.powerdnsError = response.error;
+                            $scope.powerdnsResult = '';
+                        } else {
+                            _.extend($scope.zone, response);
+                            $scope.powerdnsResult = 'Saved zone';
+                            $scope.powerdnsError = '';
+                        }
+                    });
                 };
 
                 $scope.sortByType = function(record) {
-                    if (record.modification == 'created') {
+                    if (record.modification == 'created' || record.modification == 'creating') {
                         return -1;
                     }
                     recordType = $scope.recordTypes[record.type]
@@ -74,8 +91,12 @@
                 /* Validate input and store the 'pristine' version of the
                    record if this is the first time it's been modified */
                 $scope.beforeUpdateRecord = function(record, changes) {
-                    if (changes.name == '') {
-                        return 'Record must have a name';
+                    if (changes.name == '' || changes.content == '' || changes.ttl < 60) {
+                        return 'Record missing fields';
+                    }
+
+                    if (record.modification == 'creating') {
+                        record.modification = 'created';
                     }
 
                     /* Newly created records do not have a 'pristine' version to
@@ -115,7 +136,7 @@
                    or just remove it if the record only exists locally */
                 $scope.deleteRecord = function(record) {
                     // 'created' records only exist locally
-                    if (record.modification == 'created') {
+                    if (record.modification == 'created' || record.modification == 'creating') {
                         $scope.zone.records.splice($scope.zone.records.indexOf(record), 1);
                         return;
                     }
@@ -132,7 +153,7 @@
                 /* Return a record to its pristine state, or remove it if it
                    only exists locally */
                 $scope.resetRecord = function(record) {
-                    if (record.modification == 'created') {
+                    if (record.modification == 'created' || record.modification == 'creating') {
                         $scope.deleteRecord(record);
                     }
 
@@ -153,9 +174,17 @@
                       type: 'A',
                       ttl: 3600,
                       content: '',
-                      modification: 'created'
+                      modification: 'creating'
                     };
                     $scope.zone.records.push(angular.copy($scope.created));
+                };
+
+                $scope.keypress = function(e, form) {
+                    if (e.which === 13) {
+                        // slightly horrible way to focus the next row
+                        $(e.originalEvent.originalTarget).parent().parent().parent().parent().next('tr').find('input').first().focus();
+                        form.$submit();
+                    }
                 };
 
             }]);

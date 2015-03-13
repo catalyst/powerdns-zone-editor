@@ -2,12 +2,20 @@
 
 <table class="table zone-info">
     <tr>
-        <th>Kind</th><td>{{ zone.kind }}</td><th>Records</th><td>{{ zone.records.length }}</td>
+        <th>Kind</th><td>{{ zone.kind }}</td><th>Records</th><td>{{ zone.records.length -countUnsavedRecords('creating') }}</td>
     </tr>
     <tr>
         <th>Serial</th><td>{{ zone.serial }}</td>
     </tr>
 </table>
+
+<div class="alert alert-warning" role="alert" ng-show="powerdnsError.length > 0">
+    <strong>Error</strong> {{ powerdnsError }}
+</div>
+
+<div class="alert alert-success" role="alert" ng-show="powerdnsResult.length > 0">
+    <strong>Success</strong> {{ powerdnsResult }}
+</div>
 
 <table class="table records" st-table="displayedRecords" st-safe-src="zone.records">
     <thead>
@@ -28,31 +36,32 @@
         </tr>
     </thead>
     <tbody>
-        <tr ng-repeat="record in displayedRecords" ng-class="{ 'bg-info': record.modification == 'updated', 'bg-danger': record.modification == 'deleted', 'bg-success': record.modification == 'created' }">
+        <tr ng-repeat="record in displayedRecords" ng-class="{'bg-info': record.modification == 'updated' || (rowform.$visible &amp;&amp; !record.modification) , 'bg-danger': record.modification == 'deleted', 'bg-success': record.modification == 'created' || record.modification == 'creating'}">
             <td ng-click="rowform.$show()" class="col-md-2 record-name">
                 <span ng-show="!rowform.$visible &amp;&amp; record.original.name != record.name &amp;&amp; record.original" class="original">{{ record.original.name }}<br></span>
-                <span editable-text="record.name" e-name="name" e-form="rowform">{{ record.name }}</span>
+                <span e-ng-keypress="keypress($event, rowform)" ng-if="record.type != 'SOA'" editable-text="record.name" e-name="name" e-form="rowform">{{ record.name }}</span>
+                <span ng-if="record.type == 'SOA'">{{ zone.name }}</span>
             </td>
             <td ng-click="rowform.$show()" class="col-md-1 record-type">
                 <span ng-show="!rowform.$visible &amp;&amp; record.original.type != record.type &amp;&amp; record.original" class="original">{{ record.original.type }}<br></span>
-                <span ng-if="record.type != 'SOA'" editable-select="record.type" e-name="type" e-form="rowform" e-ng-options="name for (name, name) in recordTypes">{{ record.type }}</span>
+                <span e-ng-keypress="keypress($event, rowform)" ng-if="record.type != 'SOA'" editable-select="record.type" e-name="type" e-form="rowform" e-ng-options="name for (name, name) in recordTypes">{{ record.type }}</span>
                 <span ng-if="record.type == 'SOA'">SOA</span>
             </td>
             <td ng-click="rowform.$show()" class="col-md-1 record-ttl">
                 <span ng-show="!rowform.$visible &amp;&amp; record.original.ttl != record.ttl &amp;&amp; record.original" class="original">{{ record.original.ttl }}<br></span>
-                <span editable-text="record.ttl" e-name="ttl" e-form="rowform">{{ record.ttl }}</span>
+                <span e-ng-keypress="keypress($event, rowform)" editable-text="record.ttl" e-name="ttl" e-form="rowform">{{ record.ttl }}</span>
             </td>
             <td ng-click="rowform.$show()" class="record-content">
                 <span ng-show="!rowform.$visible &amp;&amp; record.original.content != record.content &amp;&amp; record.original" class="original">{{ record.original.content }}<br></span>
-                <span editable-text="record.content" e-name="content" e-form="rowform">{{ record.content }}</span>
+                <span e-ng-keypress="keypress($event, rowform)" editable-text="record.content" e-name="content" e-form="rowform" e-id="barp">{{ record.content }}</span>
             </td>
             <td class="record-actions">
-                <form editable-form name="rowform" ng-show="rowform.$visible" class="form-buttons form-inline" onbeforesave="beforeUpdateRecord(record, $data)" onaftersave="afterUpdateRecord(record)" shown="record.modification == 'created'" oncancel="resetRecord(record)">
-                    <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-default btn-link" title="Update"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></button>
-                    <button type="button" ng-disabled="rowform.$waiting" ng-click="rowform.$cancel()"  class="btn btn-link" title="Cancel update"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                <form editable-form name="rowform" ng-show="rowform.$visible" class="form-buttons form-inline" onbeforesave="beforeUpdateRecord(record, $data)" onaftersave="afterUpdateRecord(record)" shown="record.modification == 'creating'" oncancel="resetRecord(record)">
+                    <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-default btn-link" title="Update" tabindex="-1"><span class="glyphicon glyphicon-ok" aria-hidden="true" ></span></button>
+                    <button type="button" ng-disabled="rowform.$waiting" ng-click="rowform.$cancel()"  class="btn btn-link" title="Cancel update" tabindex="-1"><span class="glyphicon glyphicon-remove" aria-hidden="true" ></span></button>
                 </form>
 
-                <button ng-show="!rowform.$visible &amp;&amp; record.type != 'SOA'" type="button" class="btn btn-link pull-right" ng-click="deleteRecord(record)" aria-label="Delete" title="Toggle deletion"><span class="glyphicon glyphicon-trash" aria-hidden="true" ng-hide="record.deleted"></span><span class="glyphicon glyphicon-remove" aria-hidden="true" ng-show="record.deleted"></span></button>
+                <button ng-show="!rowform.$visible &amp;&amp; record.type != 'SOA'" type="button" class="btn btn-link pull-right" ng-click="deleteRecord(record)" aria-label="Delete" title="Toggle deletion" tabindex="-1"><span class="glyphicon glyphicon-trash" aria-hidden="true" ng-hide="record.deleted"></span><span class="glyphicon glyphicon-remove" aria-hidden="true" ng-show="record.deleted"></span></button>
             </td>
         </tr>
     </tbody>

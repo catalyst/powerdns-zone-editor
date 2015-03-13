@@ -104,5 +104,6 @@ REST_PROXY = {
 # PowerDNS settings
 
 POWERDNS_SERVER = 'localhost'
+POWERDNS_API_KEY = 'password'
 
 LOGIN_URL = "/login"
