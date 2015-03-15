@@ -16,11 +16,12 @@
                 $scope.user = user;
                 $scope.zones = zones;
             }]).
-            controller('Zone', ['$scope','$filter', 'user', 'zone', function($scope, $filter, user, zone) {
+            controller('Zone', ['$scope', '$filter', 'user', 'zone',  function($scope, $filter, user, zone) {
                 $scope.user = user;
                 $scope.zone = zone;
                 $scope.powerdnsError = '';
                 $scope.powerdnsResult = '';
+                $scope.zone.commitMessage = '';
 
                 $scope.recordTypes = {
                     'SOA': {'allowCreate': false, 'required': true, 'sortWeight': -100},
