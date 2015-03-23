@@ -1,10 +1,20 @@
-<h1 class="page-header">Zones</h1>
-
-<table class="table table-stripped">
+<table class="table zone-info">
     <tr>
-        <th>Zone</th><th>Serial</th>
+        <th>Logged in as</th><td>{{ user.username }}</td>
     </tr>
-    <tr ng-repeat="zone in zones">
-        <td><a ui-sref="client.zone({id: zone.id})">{{ zone.name }}</a></td><td>{{ zone.serial }}</td>
+    <tr>
+        <th>Member of accounts</th><td>{{ user.groups.join(', ') }}</td>
     </tr>
 </table>
+
+<div ng-repeat="(account, account_zones) in zones | groupBy: 'account'">
+<h2>{{ account }}</h2>
+<table class="table zones">
+    <tr>
+        <th class="col-md-2">Zone</th><th>Serial</th>
+    </tr>
+    <tr ng-repeat="zone in account_zones">
+        <td class="col-md-2"><a ui-sref="client.zones.zone({id: zone.id})">{{ zone.name }}</a></td><td>{{ zone.serial }}</td>
+    </tr>
+</table>
+</div>

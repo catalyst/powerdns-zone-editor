@@ -7,7 +7,7 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="commit_message">Before saving your changes please describe briefly your intent.</label>
+                    <label for="commit_message">Before saving your changes please briefly describe your intent.</label>
                     <input ng-model="zone.commitMessage" class="form-control" id="commit_message" name="commit_message" placeholder="Updated {{ zone.name }}">
                 </div>
                 <p>Changes will be immediately visible in the DNS once saved.</p>
@@ -20,7 +20,50 @@
     </div>
 </div>
 
-<h1 class="page-header">{{ zone.name }} <small>{{ zone.account }}</small></h1>
+<div id="rollBackModal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Roll back to previous revision</h4>
+            </div>
+            <div class="modal-body">
+                <p>The selected revision will be loaded in to the editor for review <span ng-show="anyUnsavedRecords()">and <strong>unsaved changes in the editor will be lost.</strong></span></p>
+
+                <div class="list-group revision-list">
+                    <span data-dismiss="modal" class="list-group-item" ng-repeat="revision in revisions  | startFrom:currentRevisionPage*10 | limitTo:10" ng-click="loadRevision(revision.created, revision.user, revision.id)">
+                        <span class="badge" ng-if="$first">Live zone</span>
+                        <h4 class="list-group-item-heading">{{ revision.created | date:'yyyy-MM-dd HH:mm:ss' }} by {{ revision.user }}</h4>
+                        <p class="list-group-item-text">{{ revision.comment }}</p>
+                    </span>
+                </div>
+    <button class="btn btn-link" ng-hide="currentRevisionPage == 0" ng-click="currentRevisionPage=currentRevisionPage-1">
+        Newer...
+    </button>
+    <button class="btn btn-link pull-right" ng-hide="currentRevisionPage >= revisions.length/10 - 1" ng-click="currentRevisionPage=currentRevisionPage+1">
+        Older...
+    </button>
+    <br style="clear: all"/>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h1 class="page-header">
+    {{ zone.name }} <small>{{ zone.account }}</small>
+
+    <div class="btn-group pull-right">
+        <button type="button" class="btn btn-link dropdown-toggle zone-actions-button" data-toggle="dropdown" aria-expanded="false">
+            <span class="glyphicon glyphicon-cog"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+            <li role="presentation"><button type="button" onclick="$('#rollBackModal').modal()" class="btn-link btn">Roll back to previous revision...</button></li>
+        </ul>
+    </div>
+</h1>
 
 <table class="table zone-info">
     <tr>
@@ -39,19 +82,19 @@
     <strong>Success</strong> {{ powerdnsResult }}
 </div>
 
-<table class="table records" st-table="displayedRecords" st-safe-src="zone.records">
+<table class="table records table-hover" st-table="displayedRecords" st-safe-src="zone.records">
     <thead>
         <tr class="table-tools">
-            <th colspan="3">
+            <td colspan="3">
                 <input st-search placeholder="Filter..." class="input-sm form-control" type="search"/>
-            </th>
-            <th colspan="2">
+            </td>
+            <td colspan="2">
                 <span class="pull-right">
                     <span ng-show="anyUnsavedRecords()"><span class="text-success">{{ countUnsavedRecords('created') }} created</span>, <span class="text-info">{{ countUnsavedRecords('updated') }} updated</span>, <span class="text-danger">{{ countUnsavedRecords('deleted') }} deleted</span></span>
-                    <button type="submit" class="btn btn-success" ng-click="addRecord()">Add record</button>
-                    <button type="submit" class="btn btn-primary" onclick="$('#saveModal').modal()" ng-disabled="!anyUnsavedRecords()">Save changes...</button>
+                    <button type="button" class="btn btn-success" ng-click="addRecord()">Add record</button>
+                    <button type="button" class="btn btn-primary" onclick="$('#saveModal').modal()" ng-disabled="!anyUnsavedRecords()">Save changes...</button>
                 </span>
-            </th>
+            </td>
         </tr>
         <tr>
             <th st-sort="name">Name</th><th st-skip-natural="true" st-sort-default="true" st-sort="sortByType">Type</th><th st-sort="ttl">TTL</th><th st-sort="content">Content</th><th></th>

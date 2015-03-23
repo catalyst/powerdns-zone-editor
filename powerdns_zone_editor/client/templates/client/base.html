@@ -1,6 +1,6 @@
 {% load staticfiles %}
 <!DOCTYPE html>
-<html lang="en" ng-app="dnsApp">
+<html lang="en" ng-app="{% block ngapp %}{% endblock %}">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,7 +9,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>{% block title %}Zone Editor{% endblock %}</title>
+    <title>{% block title %}Catalyst Zone Editor{% endblock %}</title>
 
     <link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
     <link href="{% static "client/css/xeditable.css" %}" rel="stylesheet">
@@ -26,35 +26,24 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/">Zone Editor</a>
+          <a class="navbar-brand" href="/">Catalyst Zone Editor</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
             <li><a href="#">{{ user.username }}</a></li>
           </ul>
-          <form class="navbar-form navbar-right">
-            <input type="text" class="form-control" placeholder="Search...">
-          </form>
         </div>
       </div>
     </nav>
 
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-sm-3 col-md-2 sidebar">
-            {% block sidebar %}{% endblock %}
-        </div>
-        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" ui-view>
-            {% block content %}{% endblock %}
-        </div>
-      </div>
-    </div>
+    {% block content %}<ui-view></ui-view>{% endblock %}
 
     <script type="text/javascript" src="{% static "client/lib/jquery.min.js" %}"></script>
     <script type="text/javascript" src="{% static "client/lib/underscore.js" %}"></script>
     <script type="text/javascript" src="{% static "client/lib/angular.js" %}"></script>
     <script type="text/javascript" src="{% static "client/lib/angular-ui-router.js" %}"></script>
     <script type="text/javascript" src="{% static "client/lib/restangular.js" %}"></script>
+    <script type="text/javascript" src="{% static "client/lib/angular-filter.js" %}"></script>
     <script type="text/javascript" src="{% static "bootstrap/lib/bootstrap.min.js" %}"></script>
     <script type="text/javascript" src="{% static "client/lib/xeditable.js" %}"></script>
     <script type="text/javascript" src="{% static "client/lib/smart-table.js" %}"></script>

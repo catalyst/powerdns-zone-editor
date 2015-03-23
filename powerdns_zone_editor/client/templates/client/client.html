@@ -1,27 +1,26 @@
 {% extends "client/base.html" %}
 {% load staticfiles %}
 
-{% block sidebar %}
-<ul class="nav nav-sidebar">
-    <li class="active"><a href="/">Zones <span class="sr-only">(current)</span></a></li>
-</ul>
-{% endblock %}
+{% block ngapp %}dnsApp{% endblock %}
 
 {% block jsapp %}
         <script>
-            angular.module('dnsApp', ['ui.router', 'xeditable', 'smart-table',  'restangular', 'dnsApp.controllers']);
+            angular.module('dnsApp', ['ui.router', 'xeditable', 'smart-table', 'angular.filter', 'restangular', 'dnsApp.controllers']);
 
             angular.module('dnsApp.controllers', []).
             controller('ZonesList', ['$scope', 'user', 'zones', function($scope, user, zones) {
                 $scope.user = user;
                 $scope.zones = zones;
             }]).
-            controller('Zone', ['$scope', '$filter', 'user', 'zone',  function($scope, $filter, user, zone) {
+            controller('Zone', ['$scope', '$filter', 'Restangular', 'user', 'zone', 'revisions', function($scope, $filter, Restangular, user, zone, revisions) {
                 $scope.user = user;
                 $scope.zone = zone;
+                $scope.revisions = revisions;
                 $scope.powerdnsError = '';
                 $scope.powerdnsResult = '';
                 $scope.zone.commitMessage = '';
+
+                $scope.currentRevisionPage = 0;
 
                 $scope.recordTypes = {
                     'SOA': {'allowCreate': false, 'required': true, 'sortWeight': -100},
@@ -55,7 +54,32 @@
                     'DLV': {},
                 };
 
+                $scope.refreshRevisions = function() {
+                    Restangular.one('zones', $stateParams.id).all('revisions').getList().then(function (revisions) {
+                        _.extend($scope.revisions, revisions);
+                    });
+                };
+
+                $scope.loadRevision = function(revision_created, revision_user, revision_id) {
+                    Restangular.one('zones', $scope.zone.id).one('revisions', revision_id).get().then(function (revision) {
+                        var revision_string = $filter('date')(revision_created, 'yyyy-MM-dd HH:mm:ss') + ' by ' + revision_user;
+                        if (angular.equals(revision, $scope.zone.records)) {
+                            $scope.powerdnsResult = 'Selected revision ' + revision_string + ' is identical to the current view.';
+                        } else {
+                            $scope.zone.records = angular.copy(revision);
+                            $scope.zone.commitMessage = 'Rolled back to revision ' + revision_string;
+                            $scope.powerdnsResult = 'Loaded revision ' + revision_string + '.';
+                        }
+                    });
+                }
+
                 $scope.saveZone = function() {
+                    $scope.zone.commitMessage = $.trim($scope.zone.commitMessage);
+
+                    if ($scope.zone.commitMessage == '') {
+                        $scope.zone.commitMessage = 'Updated ' + $scope.zone.name;
+                    }
+
                     $scope.zone.save().then(function (saved_zone) {
                         response = angular.fromJson(saved_zone);
                         if ('error' in response) {
@@ -63,8 +87,10 @@
                             $scope.powerdnsResult = '';
                         } else {
                             _.extend($scope.zone, response);
+                            $scope.zone.commitMessage = '';
                             $scope.powerdnsResult = 'Saved zone';
                             $scope.powerdnsError = '';
+                            $scope.refreshRevisions();
                         }
                     });
                 };
@@ -191,11 +217,10 @@
             }]);
 
             angular.module('dnsApp').config(function($stateProvider, $urlRouterProvider, $httpProvider,  RestangularProvider) {
-
                 $stateProvider.
                 state('client', {
                     url: '',
-                    template: "<div ui-view></div>",
+                    templateUrl: '{% static "client/partials/client.html" %}',
                     abstract: true,
                     resolve: {
                         user: function (Restangular) {
@@ -205,21 +230,40 @@
                 }).
                 state('client.zones', {
                     url: '',
-                    templateUrl: '{% static "client/partials/zones.html" %}',
-                    controller: 'ZonesList',
+                    views: {
+                        'sidebar@client': {
+                            templateUrl: '{% static "client/partials/zones_sidebar.html" %}',
+                            controller: 'ZonesList',
+                        },
+                        'main@client': {
+                            templateUrl: '{% static "client/partials/zones.html" %}',
+                            controller: 'ZonesList',
+                        },
+                    },
                     resolve: {
                         zones: function (Restangular) {
                             return Restangular.all('zones/').getList();
                         }
                     }
                 }).
-                state('client.zone', {
+                state('client.zones.zone', {
                     url: '/zones/:id',
-                    templateUrl: '{% static "client/partials/zone.html" %}',
-                    controller: 'Zone',
+                    views: {
+                        'sidebar@client': {
+                            templateUrl: '{% static "client/partials/zones_sidebar.html" %}',
+                            controller: 'ZonesList',
+                        },
+                        'main@client': {
+                            templateUrl: '{% static "client/partials/zone.html" %}',
+                            controller: 'Zone',
+                        },
+                    },
                     resolve: {
                         zone: function (Restangular, $stateParams) {
                             return Restangular.one('zones', $stateParams.id).get();
+                        },
+                        revisions: function (Restangular, $stateParams) {
+                            return Restangular.one('zones', $stateParams.id).all('revisions').getList();
                         }
                     }
                 });
@@ -227,6 +271,12 @@
                 $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
                 RestangularProvider.setBaseUrl('/api');
 
+            }).
+            filter('startFrom', function() {
+                return function(input, start) {
+                    start = +start; // coerce to integer
+                    return input.slice(start);
+                }
             }).
             run(function(editableOptions) {
                 editableOptions.theme = 'bs3';
