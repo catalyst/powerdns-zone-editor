@@ -37,7 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework_proxy',
+    'angular',
     'bootstrap',
     'client',
 )
@@ -90,19 +90,11 @@ STATIC_URL = '/static/'
 
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
-# REST framework
-
-#REST_FRAMEWORK = {
-#    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAdminUser',),
-#}
-
-REST_PROXY = {
-    'HOST': 'http://127.0.0.1:8081',
-}
-
 # PowerDNS settings
 
 POWERDNS_SERVER = 'localhost'
 POWERDNS_API_KEY = 'password'
+
+# Cookie auth settings
 
 LOGIN_URL = "/login"

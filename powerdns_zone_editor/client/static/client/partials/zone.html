@@ -3,7 +3,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">Save zone changes</h4>
+                <h4 class="modal-title">Save and publish zone changes</h4>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -14,7 +14,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="saveZone()">Save changes</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="saveZone()">Save and publish changes</button>
             </div>
         </div>
     </div>
@@ -25,7 +25,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">Roll back to previous revision</h4>
+                <h4 class="modal-title">Load previous revision</h4>
             </div>
             <div class="modal-body">
                 <p>The selected revision will be loaded in to the editor for review <span ng-show="anyUnsavedRecords()">and <strong>unsaved changes in the editor will be lost.</strong></span></p>
@@ -60,7 +60,7 @@
             <span class="glyphicon glyphicon-cog"></span>
         </button>
         <ul class="dropdown-menu" role="menu">
-            <li role="presentation"><button type="button" onclick="$('#rollBackModal').modal()" class="btn-link btn">Roll back to previous revision...</button></li>
+            <li role="presentation"><button type="button" onclick="$('#rollBackModal').modal()" class="btn-link btn">Load previous revision...</button></li>
         </ul>
     </div>
 </h1>
@@ -92,7 +92,7 @@
                 <span class="pull-right">
                     <span ng-show="anyUnsavedRecords()"><span class="text-success">{{ countUnsavedRecords('created') }} created</span>, <span class="text-info">{{ countUnsavedRecords('updated') }} updated</span>, <span class="text-danger">{{ countUnsavedRecords('deleted') }} deleted</span></span>
                     <button type="button" class="btn btn-success" ng-click="addRecord()">Add record</button>
-                    <button type="button" class="btn btn-primary" onclick="$('#saveModal').modal()" ng-disabled="!anyUnsavedRecords()">Save changes...</button>
+                    <button type="button" class="btn btn-primary" onclick="$('#saveModal').modal()" ng-disabled="!anyUnsavedRecords()">Save and publish changes...</button>
                 </span>
             </td>
         </tr>

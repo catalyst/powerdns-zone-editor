@@ -1,4 +1,3 @@
 Django
-django-rest-framework-proxy
 djangorestframework
 requests
