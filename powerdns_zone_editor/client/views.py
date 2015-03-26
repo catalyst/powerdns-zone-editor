@@ -5,14 +5,11 @@ import json
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User, Group
 from django.db import transaction
-from django.http import Http404
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
 
-from rest_framework import viewsets
-from rest_framework.request import Request, clone_request
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -46,6 +43,7 @@ def database_record_to_pdns_record(record):
 
 class ZonesListView(APIView):
     allowed_methods = ['GET', 'POST']
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
         zones = pdns_client(accounts=user_groups(request.user)).get_zones()
@@ -53,6 +51,7 @@ class ZonesListView(APIView):
 
 class ZoneView(APIView):
     allowed_methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk):
         zone = pdns_client(accounts=user_groups(request.user)).get_zone(pk)
@@ -130,6 +129,9 @@ class ZoneView(APIView):
         return patch_response
 
 class UserView(APIView):
+    allowed_methods = ['GET']
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request):
         return Response({
             'username': request.user.username,
@@ -137,6 +139,9 @@ class UserView(APIView):
         })
 
 class ZoneRevisionListView(APIView):
+    allowed_methods = ['GET']
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request, pk):
         if any([pk == zone['id'] for zone in pdns_client(accounts=user_groups(request.user)).get_zones()]):
             revisions = Zone.objects.filter(zone_name=pk).order_by('-created')
@@ -147,6 +152,9 @@ class ZoneRevisionListView(APIView):
             return denied_response()
 
 class ZoneRevisionView(APIView):
+    allowed_methods = ['GET']
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request, zone_id, pk):
         revision_zone = Zone.objects.get(pk=pk)
         server_zone = pdns_client(accounts=user_groups(request.user)).get_zone(revision_zone.zone_name)

@@ -32,6 +32,10 @@ class PowerDnsClient(object):
         )
 
     def get_zones(self):
+        """
+        Return a list of all zones, optionally filtered by list of accounts.
+        """
+
         all_zones_request = self._request('GET', 'zones')
         all_zones = all_zones_request.json()
 
@@ -44,6 +48,10 @@ class PowerDnsClient(object):
             raise PowerDnsBackendError(('Could not retrieve zone list', all_zones_request.status_code))
 
     def get_zone(self, zone_id):
+        """
+        Return a single zone, optionally filtered by list of accounts.
+        """
+
         zone_request = self._request('GET', 'zones/%s' % zone_id)
         zone = zone_request.json()
 
@@ -61,6 +69,10 @@ class PowerDnsClient(object):
             raise PowerDnsBackendError(('Could not retrieve zone %s' % zone_id, zone_request.status_code))
 
     def patch_zone(self, zone_id, patch_data):
+        """
+        Patch an existing zone. Does /not/ check that the zone belongs to specified account.
+        """
+
         patch_request = self._request('PATCH', 'zones/%s' % zone_id, patch_data)
         if patch_request.status_code == 200:
             return patch_request.json()
