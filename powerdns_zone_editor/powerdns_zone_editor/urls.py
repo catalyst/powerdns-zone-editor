@@ -6,7 +6,7 @@ from client import views
 
 urlpatterns = patterns('',
     url('^login/', 'django.contrib.auth.views.login', {'template_name': 'client/login.html'}),
-    url('^logout/', 'django.contrib.auth.views.logout'),
+    url('^logout/', 'django.contrib.auth.views.logout', {'template_name': 'client/logout.html'}),
     url(r'^api/zones/(?P<zone_id>[^/]+)/revisions/(?P<pk>[^/]+)$', views.ZoneRevisionView.as_view(), name='zone-revision'),
     url(r'^api/zones/(?P<pk>[^/]+)/revisions$', views.ZoneRevisionListView.as_view(), name='zone-revision-list'),
     url(r'^api/zones/(?P<pk>[^/]+)$', views.ZoneView.as_view(), name='zone-detail'),
