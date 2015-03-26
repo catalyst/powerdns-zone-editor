@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Basic PowerDNS API client class and errors using `requests'.
 """

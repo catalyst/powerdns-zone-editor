@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from client.models import Zone, ZoneRecord
 
 class ZoneAdmin(admin.ModelAdmin):

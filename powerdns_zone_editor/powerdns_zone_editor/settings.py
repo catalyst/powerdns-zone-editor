@@ -92,8 +92,12 @@ TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
 # PowerDNS settings
 
-POWERDNS_SERVER = 'localhost'
-POWERDNS_API_KEY = 'password'
+POWERDNS = {
+    'server': 'localhost', # server is always 'localhost' for the auth server
+    'api-key': 'password',
+    'hostname': '127.0.0.1',
+    'port': 8081,
+}
 
 # Cookie auth settings
 

@@ -1,32 +1,34 @@
+from itertools import groupby
+from operator import itemgetter
 import copy
 import json
 
-import requests
-
-from operator import itemgetter
-from itertools import groupby
-
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User, Group
 from django.db import transaction
 from django.http import Http404
-from django.conf import settings
-from django.contrib.auth.models import User, Group
-from django.contrib.auth.decorators import login_required
-from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
+from django.views.generic import TemplateView
 
 from rest_framework import viewsets
-from rest_framework.response import Response
 from rest_framework.request import Request, clone_request
-
+from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_proxy.views import ProxyView
+
+import requests
 
 from client.models import Zone, ZoneRecord
-
 from client.pdns import PowerDnsClient
 
 def pdns_client(accounts):
-    return PowerDnsClient(accounts=accounts, api_key=settings.POWERDNS_API_KEY)
+    return PowerDnsClient(
+        accounts=accounts,
+        server=settings.POWERDNS['server'],
+        hostname=settings.POWERDNS['hostname'],
+        port=settings.POWERDNS['port'],
+        api_key=settings.POWERDNS['api-key'],
+    )
 
 def user_groups(user):
     if user.is_superuser:
