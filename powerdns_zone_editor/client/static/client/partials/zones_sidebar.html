@@ -1,0 +1,13 @@
+<p class="zone-count">
+    <span ng-show="zones.length == 0">No zones</span>
+    <span ng-show="zones.length == 1"><big>1</big> zone</span>
+    <span ng-show="zones.length > 1"><big>{{ zones.length }}</big> zones</span>
+</p>
+
+<p class="sidebar-header">Your accounts</p>
+<ul class="nav nav-sidebar" ng-repeat="(account, account_zones) in zones | groupBy: 'account'">
+    <li class="nav-header"><a ui-sref="client.zones">{{ account }}</a></li>
+    <li ng-repeat="account_zone in account_zones">
+        <a ui-sref="client.zones.zone({id: account_zone.id})">{{ account_zone.name }}</a>
+    </li>
+</ul>

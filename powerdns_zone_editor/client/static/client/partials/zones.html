@@ -1,0 +1,20 @@
+<table class="table zone-info">
+    <tr>
+        <th>Logged in as</th><td>{{ user.username }}</td>
+    </tr>
+    <tr>
+        <th>Member of accounts</th><td>{{ user.groups.join(', ') }}</td>
+    </tr>
+</table>
+
+<div ng-repeat="(account, account_zones) in zones | groupBy: 'account'">
+<h2>{{ account }}</h2>
+<table class="table zones">
+    <tr>
+        <th class="col-md-2">Zone</th><th>Serial</th>
+    </tr>
+    <tr ng-repeat="zone in account_zones">
+        <td class="col-md-2"><a ui-sref="client.zones.zone({id: zone.id})">{{ zone.name }}</a></td><td>{{ zone.serial }}</td>
+    </tr>
+</table>
+</div>

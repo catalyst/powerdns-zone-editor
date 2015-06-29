@@ -1,0 +1,77 @@
+{% extends "client/base.html" %}
+{% load staticfiles %}
+
+{% block ngapp %}powerDnsZoneEditorClientApp{% endblock %}
+
+{% block jsapp %}
+        <script type="text/javascript" src="{% static "client/js/controllers.js" %}"></script>
+        <script>
+            angular.module('powerDnsZoneEditorClientApp', ['ui.router', 'xeditable', 'smart-table', 'angular.filter', 'restangular', 'powerDnsZoneEditorClientApp.controllers']);
+
+            angular.module('powerDnsZoneEditorClientApp.controllers', []);
+            angular.module('powerDnsZoneEditorClientApp.controllers').controller('ZoneCtrl', ['$scope', '$filter', 'Restangular', 'user', 'zone', 'revisions', ZoneCtrl]);
+            angular.module('powerDnsZoneEditorClientApp.controllers').controller('ZonesListCtrl', ['$scope', 'user', 'zones', ZonesListCtrl]);
+
+            angular.module('powerDnsZoneEditorClientApp').config(function($stateProvider, $urlRouterProvider, $httpProvider,  RestangularProvider) {
+                $stateProvider.
+                state('client', { // abstract base state to load main app template and logged in user
+                    url: '',
+                    templateUrl: '{% static "client/partials/client.html" %}',
+                    abstract: true,
+                    resolve: {
+                        user: function (Restangular) {
+                            return Restangular.one('user').get();
+                        }
+                    }
+                }).
+                state('client.zones', { // list of all zones
+                    url: '',
+                    views: {
+                        'sidebar@client': {
+                            templateUrl: '{% static "client/partials/zones_sidebar.html" %}',
+                            controller: 'ZonesListCtrl',
+                        },
+                        'main@client': {
+                            templateUrl: '{% static "client/partials/zones.html" %}',
+                            controller: 'ZonesListCtrl',
+                        },
+                    },
+                    resolve: {
+                        zones: function (Restangular) {
+                            return Restangular.all('zones/').getList();
+                        }
+                    }
+                }).
+                state('client.zones.zone', { // detail view of single zone
+                    url: '/zones/:id',
+                    views: {
+                        'main@client': {
+                            templateUrl: '{% static "client/partials/zone.html" %}',
+                            controller: 'ZoneCtrl',
+                        },
+                    },
+                    resolve: {
+                        zone: function (Restangular, $stateParams) {
+                            return Restangular.one('zones', $stateParams.id).get();
+                        },
+                        revisions: function (Restangular, $stateParams) {
+                            return Restangular.one('zones', $stateParams.id).all('revisions').getList();
+                        }
+                    }
+                });
+                $httpProvider.defaults.xsrfCookieName = 'csrftoken';
+                $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
+                RestangularProvider.setBaseUrl('/api');
+
+            }).
+            filter('startFrom', function() {
+                return function(input, start) {
+                    start = +start;
+                    return input.slice(start);
+                }
+            }).
+            run(function(editableOptions) {
+                editableOptions.theme = 'bs3';
+            });
+        </script>
+{% endblock %}
